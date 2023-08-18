@@ -16,24 +16,8 @@ namespace OBS
 {
     public partial class Form1 : Form
     {
-
-        //static string GenerateRandomLetters(int length)
-        //{
-        //    const string letters = "ABCDE"; // Olası harfler
-
-        //    Random random = new Random();
-        //    char[] chars = new char[length];
-
-        //    for (int i = 0; i < length; i++)
-        //    {
-        //        int index = random.Next(letters.Length);
-        //        chars[i] = letters[index];
-        //    }
-
-        //    return new string(chars);
-        //}
          Random random = new Random();
-        const  string letters = "ABCDE "; // Olası harfler
+        const  string letters = "ABCDE "; 
         char GenerateRandomLetter()
         {
             int index = random.Next(letters.Length);
@@ -45,12 +29,8 @@ namespace OBS
             InitializeComponent();
         }
 
-
         public string conString = "Data Source=DESKTOP-31EMK53\\SQLEXPRESS;Initial Catalog=OBS;Persist Security Info=True;User ID=obsUser;Password=1234";
-        public string storedProcedureName = "DBdenGetir"; // Update with your actual stored procedure name
-
-
-
+        public string storedProcedureName = "DBdenGetir"; 
 
         SqlConnection baglanti = new SqlConnection("Data Source=DESKTOP-31EMK53\\SQLEXPRESS;Initial Catalog=OBS;Persist Security Info=True;User ID=obsUser;Password=1234");
 
@@ -59,20 +39,69 @@ namespace OBS
            
         }
 
-        
-
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
-
         string dosyadi = "sinav", dosyayolu;
-
-      
-
-
         int ÖğrenciId;
-       
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            openFileDialog1.Multiselect = true;
+
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+
+
+                foreach (string selectedFilePath in openFileDialog1.FileNames)
+                {
+
+
+                    string text = File.ReadAllText(selectedFilePath, Encoding.UTF8).Replace("\r\n", "\n");
+
+
+                    DataTable ÖğrenciCevaplar = new DataTable();
+                    ÖğrenciCevaplar.Columns.Add("SınavId", typeof(int));
+                    ÖğrenciCevaplar.Columns.Add("ÖğrenciId", typeof(int));
+                    ÖğrenciCevaplar.Columns.Add("SoruNo", typeof(int));
+                    ÖğrenciCevaplar.Columns.Add("Cevap", typeof(string));
+
+                    int SınavId = 0;
+                    string s1 = text.Substring(0, text.IndexOf("\n"));
+
+
+                    int.TryParse(s1, out SınavId);
+                    text = text.Substring(text.IndexOf("\n") + 2);
+                    foreach (string line in text.Split("\n".ToCharArray()))
+                    {
+                        if (line == "")
+                            continue;
+
+                        int ogrId = 0;
+                        string cevaplar = "";
+
+                        string s2 = line.Substring(0, line.IndexOf(" "));
+                        int.TryParse(s2, out ogrId);
+                        cevaplar = line.Substring(line.IndexOf(" ") + 1);
+
+
+                        for (int i = 0; i < cevaplar.Length; i++)
+                            ÖğrenciCevaplar.Rows.Add(SınavId, ogrId, i + 1, cevaplar.Substring(i, 1));
+
+
+                    }
+
+                    using (SqlConnection objConn = new SqlConnection(conString))
+                    {
+                        objConn.Open();
+                        using (SqlCommand objCmd = new SqlCommand("insertpeople", objConn))
+                        {
+                            objCmd.CommandType = CommandType.StoredProcedure;
+                            objCmd.Parameters.AddWithValue("tbl", SqlDbType.Structured).Value = ÖğrenciCevaplar;
+
+                            objCmd.ExecuteNonQuery();
+                        }
+                    }
+                }
+            }
+        }
         private void button3_Click(object sender, EventArgs e)
         {
             using (SqlConnection connection = new SqlConnection(conString))
@@ -109,7 +138,6 @@ namespace OBS
                        
                     }
                 }
-
 
             }
         }
