@@ -47,7 +47,7 @@ namespace OBS
                                 ogrenci.OgrAd = reader["ÖgrAdı"].ToString(); // Öğrenci adını veritabanından al
                                 MessageBox.Show(ogrenci.OgrAd+" isimli, " + ogrenci.OgrId+ " ID'li öğrenci veritabanında bulundu");
 
-                                Form3 yeniForm = new Form3(); // Yeni form nesnesi oluşturun
+                                Form3 yeniForm = new Form3(ogrenci); // Ogrenci örneğini parametre olarak geçirin
                                 yeniForm.ShowDialog(); // Yeni formu görüntüleyin (modal olarak)
 
 
