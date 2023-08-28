@@ -32,10 +32,15 @@ namespace OBS
 
                         using (SqlDataReader reader = command.ExecuteReader())
                         {
-                            if (reader.Read())
+                            if (reader.HasRows)
                             {
-                                string sonuc = reader["Puan"].ToString();
-                                MessageBox.Show($"Öğrenci Sonucu: {sonuc}");
+                                string sonuclar = "";
+                                while (reader.Read())
+                                {
+                                    string puan = reader["Puan"].ToString();
+                                    sonuclar += puan + "\n";
+                                }
+                                MessageBox.Show("Öğrenci Sonuçları:\n" + sonuclar);
                             }
                             else
                             {
