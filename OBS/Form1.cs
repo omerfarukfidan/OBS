@@ -102,6 +102,13 @@ namespace OBS
                 }
             }
         }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            Form2 yeniForm = new Form2(); // Yeni form nesnesi oluşturun
+            yeniForm.ShowDialog(); // Yeni formu görüntüleyin (modal olarak)
+        }
+
         private void button3_Click(object sender, EventArgs e)
         {
             using (SqlConnection connection = new SqlConnection(conString))
