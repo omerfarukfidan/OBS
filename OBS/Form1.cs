@@ -11,6 +11,8 @@ using System.Windows.Forms;
 using System.IO;
 using System.Security.Cryptography;
 using System.Net.NetworkInformation;
+using System.Diagnostics;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace OBS
 {
@@ -49,7 +51,13 @@ namespace OBS
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
 
-
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
+                DataTable ÖğrenciCevaplar = new DataTable();
+                ÖğrenciCevaplar.Columns.Add("SınavId", typeof(int));
+                ÖğrenciCevaplar.Columns.Add("ÖğrenciId", typeof(int));
+                ÖğrenciCevaplar.Columns.Add("SoruNo", typeof(int));
+                ÖğrenciCevaplar.Columns.Add("Cevap", typeof(string));
                 foreach (string selectedFilePath in openFileDialog1.FileNames)
                 {
 
@@ -57,11 +65,6 @@ namespace OBS
                     string text = File.ReadAllText(selectedFilePath, Encoding.UTF8).Replace("\r\n", "\n");
 
 
-                    DataTable ÖğrenciCevaplar = new DataTable();
-                    ÖğrenciCevaplar.Columns.Add("SınavId", typeof(int));
-                    ÖğrenciCevaplar.Columns.Add("ÖğrenciId", typeof(int));
-                    ÖğrenciCevaplar.Columns.Add("SoruNo", typeof(int));
-                    ÖğrenciCevaplar.Columns.Add("Cevap", typeof(string));
 
                     int SınavId = 0;
                     string s1 = text.Substring(0, text.IndexOf("\n"));
@@ -88,18 +91,22 @@ namespace OBS
 
                     }
 
-                    using (SqlConnection objConn = new SqlConnection(conString))
-                    {
-                        objConn.Open();
-                        using (SqlCommand objCmd = new SqlCommand("insertpeople", objConn))
-                        {
-                            objCmd.CommandType = CommandType.StoredProcedure;
-                            objCmd.Parameters.AddWithValue("tbl", SqlDbType.Structured).Value = ÖğrenciCevaplar;
+                    
+                }
 
-                            objCmd.ExecuteNonQuery();
-                        }
+                using (SqlConnection objConn = new SqlConnection(conString))
+                {
+                    objConn.Open();
+                    using (SqlCommand objCmd = new SqlCommand("insertpeople", objConn))
+                    {
+                        objCmd.CommandType = CommandType.StoredProcedure;
+                        objCmd.Parameters.AddWithValue("tbl", SqlDbType.Structured).Value = ÖğrenciCevaplar;
+
+                        objCmd.ExecuteNonQuery();
                     }
                 }
+                sw.Stop();
+                this.Text = sw.ElapsedMilliseconds.ToString();
             }
         }
 
@@ -107,6 +114,69 @@ namespace OBS
         {
             Form2 yeniForm = new Form2(); // Yeni form nesnesi oluşturun
             yeniForm.ShowDialog(); // Yeni formu görüntüleyin (modal olarak)
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            if (int.TryParse(textBox1.Text, out int numberOfStudents))
+            {
+                try
+                {
+                    using (SqlConnection connection = new SqlConnection(conString))
+                    {
+                        connection.Open();
+
+                        using (SqlCommand command = new SqlCommand("InsertRandomStudentsAndStudentCourses", connection))
+                        {
+                            command.CommandType = CommandType.StoredProcedure;
+                            command.Parameters.AddWithValue("@NumberOfStudents", numberOfStudents);
+                            command.ExecuteNonQuery();
+                            MessageBox.Show("Öğrenciler başarıyla eklenmiştir.");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Hata oluştu: " + ex.Message);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Lütfen geçerli bir sayı girin.");
+            }
+
+            // Klasör yolunu belirtin
+            string folderPath = @"C:\Users\omerf\Desktop\Cevaplar";
+
+            try
+            {
+                // Klasör içindeki tüm dosyaları al
+                string[] files = Directory.GetFiles(folderPath);
+
+                // Her dosyayı sil
+                foreach (string file in files)
+                {
+                    File.Delete(file);
+                }
+
+                MessageBox.Show("Tüm dosyalar başarıyla silindi.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Hata oluştu: " + ex.Message);
+            }
+
+            // Önce button3_Click'i çağır
+            button3_Click(sender, e);
+
+            // Sonra button1_Click'i çağır
+            button1_Click(sender, e);
+
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+
         }
 
         private void button3_Click(object sender, EventArgs e)
