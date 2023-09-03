@@ -43,7 +43,22 @@ namespace OBS
 
         string dosyadi = "sinav", dosyayolu;
         int ÖğrenciId;
+        private void LogToFile(string message)
+        {
+            string logFilePath = @"C:\Users\omerf\Desktop\log.txt";
 
+            try
+            {
+                using (StreamWriter writer = File.AppendText(logFilePath))
+                {
+                    writer.WriteLine(message);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Log dosyasına yazma hatası: " + ex.Message);
+            }
+        }
         private void button1_Click(object sender, EventArgs e)
         {
             openFileDialog1.Multiselect = true;
@@ -107,6 +122,8 @@ namespace OBS
                 }
                 sw.Stop();
                 this.Text = sw.ElapsedMilliseconds.ToString();
+                string logMessage = " Sonuclari Yorumla Butonu: " + sw.ElapsedMilliseconds.ToString() + " ms";
+                LogToFile(logMessage);
             }
         }
 
@@ -118,6 +135,30 @@ namespace OBS
 
         private void button2_Click(object sender, EventArgs e)
         {
+
+            // Klasör yolunu belirtin
+            string folderPath = @"C:\Users\omerf\Desktop\Cevaplar";
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            try
+            {
+                // Klasör içindeki tüm dosyaları al
+                string[] files = Directory.GetFiles(folderPath);
+
+                // Her dosyayı sil
+                foreach (string file in files)
+                {
+                    File.Delete(file);
+                }
+
+                MessageBox.Show("Tüm dosyalar başarıyla silindi.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Hata oluştu: " + ex.Message);
+            }
+
+
             if (int.TryParse(textBox1.Text, out int numberOfStudents))
             {
                 try
@@ -145,34 +186,19 @@ namespace OBS
                 MessageBox.Show("Lütfen geçerli bir sayı girin.");
             }
 
-            // Klasör yolunu belirtin
-            string folderPath = @"C:\Users\omerf\Desktop\Cevaplar";
-
-            try
-            {
-                // Klasör içindeki tüm dosyaları al
-                string[] files = Directory.GetFiles(folderPath);
-
-                // Her dosyayı sil
-                foreach (string file in files)
-                {
-                    File.Delete(file);
-                }
-
-                MessageBox.Show("Tüm dosyalar başarıyla silindi.");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Hata oluştu: " + ex.Message);
-            }
+            sw.Stop();
+            this.Text = sw.ElapsedMilliseconds.ToString();
+            string logMessage = numberOfStudents + " Ogrenci icin" + " Insert Butonu: " + sw.ElapsedMilliseconds.ToString() + " ms";
+            LogToFile(logMessage);
 
             // Önce button3_Click'i çağır
             button3_Click(sender, e);
 
             // Sonra button1_Click'i çağır
             button1_Click(sender, e);
-
+            
         }
+
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
@@ -183,8 +209,12 @@ namespace OBS
         {
             using (SqlConnection connection = new SqlConnection(conString))
             {
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
                 using (SqlCommand command = new SqlCommand(storedProcedureName, connection))
                 {
+                   
+                
                     command.CommandType = CommandType.StoredProcedure;
 
                     // Add parameters if your stored procedure requires them
@@ -215,6 +245,10 @@ namespace OBS
                        
                     }
                 }
+                sw.Stop();
+                this.Text = sw.ElapsedMilliseconds.ToString();
+                string logMessage = " DB'den Getir Butonu: " + sw.ElapsedMilliseconds.ToString() + " ms";
+                LogToFile(logMessage);
 
             }
         }
