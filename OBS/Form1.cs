@@ -13,6 +13,7 @@ using System.Security.Cryptography;
 using System.Net.NetworkInformation;
 using System.Diagnostics;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using System.Threading;
 
 namespace OBS
 {
@@ -51,7 +52,7 @@ namespace OBS
             {
                 using (StreamWriter writer = File.AppendText(logFilePath))
                 {
-                    writer.WriteLine(message);
+                    writer.Write(message+"\t");
                 }
             }
             catch (Exception ex)
@@ -61,9 +62,9 @@ namespace OBS
         }
         private void button1_Click(object sender, EventArgs e)
         {
-            openFileDialog1.Multiselect = true;
+            //openFileDialog1.Multiselect = true;
 
-            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            //if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
 
                 Stopwatch sw = new Stopwatch();
@@ -73,12 +74,15 @@ namespace OBS
                 ÖğrenciCevaplar.Columns.Add("ÖğrenciId", typeof(int));
                 ÖğrenciCevaplar.Columns.Add("SoruNo", typeof(int));
                 ÖğrenciCevaplar.Columns.Add("Cevap", typeof(string));
-                foreach (string selectedFilePath in openFileDialog1.FileNames)
+                //foreach (string selectedFilePath in openFileDialog1.FileNames)
+
+                    string folderPath = @"C:\Users\omerf\Desktop\Cevaplar";
+
+
+foreach(string file in Directory.GetFiles(folderPath, "*.txt", SearchOption.AllDirectories))
                 {
 
-
-                    string text = File.ReadAllText(selectedFilePath, Encoding.UTF8).Replace("\r\n", "\n");
-
+                    string text = File.ReadAllText(file, Encoding.UTF8).Replace("\r\n", "\n");
 
 
                     int SınavId = 0;
@@ -135,68 +139,71 @@ namespace OBS
 
         private void button2_Click(object sender, EventArgs e)
         {
-
-            // Klasör yolunu belirtin
             string folderPath = @"C:\Users\omerf\Desktop\Cevaplar";
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            try
+
+            for (int numberOfStudents = 10; numberOfStudents < 200; numberOfStudents += 10)
             {
-                // Klasör içindeki tüm dosyaları al
-                string[] files = Directory.GetFiles(folderPath);
-
-                // Her dosyayı sil
-                foreach (string file in files)
-                {
-                    File.Delete(file);
-                }
-
-                MessageBox.Show("Tüm dosyalar başarıyla silindi.");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Hata oluştu: " + ex.Message);
-            }
-
-
-            if (int.TryParse(textBox1.Text, out int numberOfStudents))
-            {
+                //GC.Collect();
+                //Thread.Sleep(2000);
+                // Klasör yolunu belirtin
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
                 try
                 {
-                    using (SqlConnection connection = new SqlConnection(conString))
-                    {
-                        connection.Open();
+                    // Klasör içindeki tüm dosyaları al
+                    string[] files = Directory.GetFiles(folderPath);
 
-                        using (SqlCommand command = new SqlCommand("InsertRandomStudentsAndStudentCourses", connection))
+                    // Her dosyayı sil
+                    foreach (string file in files)
+                    {
+                        File.Delete(file);
+                    }
+
+                    //MessageBox.Show("Tüm dosyalar başarıyla silindi.");
+                }
+                catch
+                {
+                    //MessageBox.Show("Hata oluştu: " + ex.Message);
+                }
+
+                //if (int.TryParse(textBox1.Text, out int numberOfStudents))
+                {
+                    try
+                    {
+                        using (SqlConnection connection = new SqlConnection(conString))
                         {
-                            command.CommandType = CommandType.StoredProcedure;
-                            command.Parameters.AddWithValue("@NumberOfStudents", numberOfStudents);
-                            command.ExecuteNonQuery();
-                            MessageBox.Show("Öğrenciler başarıyla eklenmiştir.");
+                            connection.Open();
+
+                            using (SqlCommand command = new SqlCommand("InsertRandomStudentsAndStudentCourses", connection))
+                            {
+                                command.CommandType = CommandType.StoredProcedure;
+                                command.Parameters.AddWithValue("@NumberOfStudents", numberOfStudents);
+                                command.ExecuteNonQuery();
+                                //MessageBox.Show("Öğrenciler başarıyla eklenmiştir.");
+                            }
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Hata oluştu: " + ex.Message);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Hata oluştu: " + ex.Message);
-                }
+                //else
+                //{
+                //    MessageBox.Show("Lütfen geçerli bir sayı girin.");
+                //}
+
+                sw.Stop();
+                this.Text = sw.ElapsedMilliseconds.ToString();
+                string logMessage = "\n"+numberOfStudents.ToString() + " Ogrenci icin" + " Insert Butonu: " + sw.ElapsedMilliseconds.ToString() + " ms";
+                LogToFile(logMessage);
+
+                // Önce button3_Click'i çağır
+                button3_Click(sender, e);
+
+                // Sonra button1_Click'i çağır
+                button1_Click(sender, e);
             }
-            else
-            {
-                MessageBox.Show("Lütfen geçerli bir sayı girin.");
-            }
-
-            sw.Stop();
-            this.Text = sw.ElapsedMilliseconds.ToString();
-            string logMessage = numberOfStudents + " Ogrenci icin" + " Insert Butonu: " + sw.ElapsedMilliseconds.ToString() + " ms";
-            LogToFile(logMessage);
-
-            // Önce button3_Click'i çağır
-            button3_Click(sender, e);
-
-            // Sonra button1_Click'i çağır
-            button1_Click(sender, e);
-            
         }
 
 
